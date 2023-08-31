@@ -37,7 +37,7 @@ module "deployers" {
 
 module "roles" {
     for_each = local.yamls
-    
+
     source = "../modules/roles"
     file_path = each.value
     iam_path  = var.iam_path
