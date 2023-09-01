@@ -1,3 +1,6 @@
+# LP3 Core: RaaS (Roles as a Service)
+
+Part of my personal "core infrastructure" for creating AWS roles in my account in the specific way I want.
 
 ## What it does
 
@@ -7,7 +10,11 @@ For each yaml file in the `projects/` folder, it:
 
 ### How it works
 
-Uses a user named ``.
+All AWS resources created by this project use a user named `core-raas-run-identity`.
+
+It simply uses a terraform template to loop over each yaml file in the projects directory, scan for specific fields, and create each roles with the listed premissions.
+
+In addition, each project will have one "deployer" user created as well. This user should be used for the CI/CD process. All depoloyers follow a specific naming convention (see below).
 
 ### Initial set up
 

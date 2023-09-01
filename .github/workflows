@@ -1,0 +1,12 @@
+name: Deploy roles to dev environment
+run-name: ${{ github.actor }} triggered dev role deployment
+on: [push]
+  branches-ignore:
+    - main
+jobs:
+  validate-roles:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: echo "Hello world"
+      - run: ls -gAh
