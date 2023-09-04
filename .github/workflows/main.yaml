@@ -7,7 +7,7 @@ on:
       - main
 
 env:
-  PLAN_FILE_NAME: tfplan
+  PLAN_FILE_NAME: tfplan.plan
   SESSION_NAME: gh-action-job-${{github.job}}
   AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
 
