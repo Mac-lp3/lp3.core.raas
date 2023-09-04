@@ -8,6 +8,8 @@ resource "aws_iam_role" "project_role" {
     for_each = local.roles
 
     name = "${each.key}${local.fix}"
+    path = "/${var.iam_path}/"
+
     assume_role_policy = jsonencode({
         "Version" = "2012-10-17"
         "Statement" = [{
@@ -23,6 +25,7 @@ resource "aws_iam_role_policy" "project_policy" {
 
     name = "${each.key}-policy${local.fix}"
     role = aws_iam_role.project_role[each.key].id
+
     policy = jsonencode({
         "Version" = "2012-10-17"
         "Statement" = each.value.statement.perms

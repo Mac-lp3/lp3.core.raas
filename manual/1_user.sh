@@ -59,14 +59,38 @@ aws iam tag-role --role-name $ROLE_NAME --tags '{"Key": "'$TAG_MAN_BY_KEY'", "Va
 # It also needs any additional permissions required by terraform to access / modify the back ends.
 aws iam put-role-policy --role-name $ROLE_NAME --policy-name $POLICY_NAME --policy-document '{
     "Version": "2012-10-17",
-    "Statement": [
-        {
+    "Statement": [{
+            "Effect": "Allow",
+            "Action": [
+                "iam:ListRoles",
+                "iam:ListUsers",
+                "iam:CreateRole",
+                "iam:CreateUser",
+                "iam:GetRole",
+                "iam:UpdateUser",
+                "iam:DeleteRole",
+                "iam:DeleteUser",
+                "iam:DeleteRolePolicy",
+                "iam:UpdateRole",
+                "iam:GetUser",
+                "iam:GetRolePolicy",
+                "iam:TagUser",
+                "iam:TagRole",
+                "iam:ListRolePolicies",
+                "iam:ListAttachedRolePolicies",
+                "iam:PutRolePolicy"
+            ],
+            "Resource": [
+                "arn:aws:iam::'$(eval echo $ACCOUNT_ID)':role/lp3/raas/*",
+                "arn:aws:iam::'$(eval echo $ACCOUNT_ID)':user/lp3/raas/*"
+            ]
+        }, {
             "Effect": "Allow",
             "Action": [
                 "s3:ListBucket",
                 "s3:DeleteObject",
                 "s3:PutObject",
-                "s3:GetObject",
+                "s3:GetObject"
             ],
             "Resource": "arn:aws:s3:::core-raas-state*"
         }

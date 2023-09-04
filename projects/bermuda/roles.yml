@@ -8,7 +8,7 @@ deployer:
         - "s3:List*"
 
 roles:
-  - name: "ecs_runner"
+  - name: "bermuda-run-role"
     principal: 
       Service:
         - "ecs.amazonaws.com"

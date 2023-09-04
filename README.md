@@ -32,24 +32,27 @@ managedBy = "raas"
 
 ### Conventions
 
-*Naming conventions*
-* deployers
-    * users
-        name: ${project_name}-deploy-user-${env}
-        path: /lp3/raas/
-    * policy
-        name: ${project_name}-deploy-policy-${env}
-        path: /lp3/raas/
-    * role
-        name: ${project_name}-deploy-role-${env}
-        path: /lp3/raas/
-    * role attachments
-        name: ${project_name}-deploy-attachment-${env}
-        path: /lp3/raas/
+**Naming conventions**
+All users and roles managed by this project will be created with the IAM path of `/lp3/raas/`.
+
+Deployer users will follow the following naming convention: `${project_name}-deployer-user-${env}`.
+
+Deployer roles will following the following naming convention: `${project_name}-deploy-role-${env}`.
+
+## FAQ
+
+**How do I use the deployer?**
+One method is to use the AWS CLI `aws sts assume-role` command, extract the values from the returned JSON object, and export them via `export AWS_SESSION_TOKEN=...`.
+
+The command must be run as the deployer user that was created (the only user with permission to assume that role). You need to log into the AWS console to get the user key and add it as a secret to your CI/CD jobs.
+
+**The project doesn't have permission to create the role I just added. What do I do?**
+Add the IAM permission to the policy document in `manual/1_user.sh`. Then, delete that role in the AWS console, and run the script to recreate it with the additional permission.
+
+You should be good to go now (assuming that missing permission was your issue).
 
 ## TODO
 
-* Manual scripts for tf backend, initial user set up & tagging
 * Policies are case sensitive. I could make things easier by updating the yml format and policy template so end users do not need to be aware of the proper field names/formats...
 * git deployments
     * non raas-user that will do the raas deployments
