@@ -67,5 +67,5 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: plan_file
-          path: dev/$PLAN_FILE_NAME
+          path: ./dev/$PLAN_FILE_NAME
 
