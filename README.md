@@ -24,13 +24,6 @@ This creates a terraform backend and an IAM user and role which the CI/CD or dep
 
 You can see the scripts in the `manual/` directory for the details.
 
-### Tags
-
-*Default tags*
-
-env       = ${env}
-managedBy = "raas"
-
 ### Conventions
 
 **Naming conventions**
