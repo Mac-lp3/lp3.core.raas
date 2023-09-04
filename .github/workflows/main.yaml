@@ -31,7 +31,6 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
-          echo "current key ID $AWS_ACCESS_KEY_ID"
           token=$(aws sts assume-role --role-arn ${{ secrets.RAAS_ROLE_ARN }} --role-session-name $SESSION_NAME --duration-seconds 900 --output json --no-cli-pager | jq)
           tmp_key_id=$(echo $token | jq -r '.Credentials.AccessKeyId')
           tmp_secret_key=$(echo $token | jq -r '.Credentials.SecretAccessKey')
@@ -39,8 +38,6 @@ jobs:
           echo "AWS_ACCESS_KEY_ID=$tmp_key_id" >> "$GITHUB_ENV"
           echo "AWS_SECRET_ACCESS_KEY=$tmp_secret_key" >> "$GITHUB_ENV"
           echo "AWS_SESSION_TOKEN=$tmp_token" >> "$GITHUB_ENV"
-          echo "new key id $AWS_ACCESS_KEY_ID"
-          aws sts get-caller-identity --debug
 
       - name: Terraform format
         id: fmt
@@ -64,6 +61,7 @@ jobs:
         run: |
           terraform -chdir=dev workspace select -or-create dev
           terraform -chdir=dev plan -out=$PLAN_FILE_NAME
+          tree -a --dirsfirst -I 'node_modules|.git|.terraform'
 
       - name: Upload plan
         uses: actions/upload-artifact@v3
