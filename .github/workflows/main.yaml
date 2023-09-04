@@ -42,13 +42,11 @@ jobs:
         id: fmt
         continue-on-error: true
         run: |
-          terraform -chdir=dev workspace select -or-create dev
-          terraform fmt -check
+          terraform -chdir=dev fmt -check
 
       - name: Terraform Init
         id: init
         run: |
-          terraform -chdir=dev workspace select -or-create dev
           terraform -chdir=dev init
 
       - name: Terraform Validate
