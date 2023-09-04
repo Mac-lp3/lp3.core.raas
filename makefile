@@ -1,5 +1,6 @@
 AWS_REGION ?=
 ENV = dev
+SESSION_NAME="local-raas-testing"
 
 initial-setup:
 	@echo "By default, this will create the initial AWS resource in:"
@@ -23,3 +24,14 @@ tf-a-d:
 tf-destroy-d:
 	terraform -chdir=dev workspace select -or-create dev
 	terraform -chdir=dev destroy
+
+# test runner deployment
+# run TF apply
+local-test:
+	token=$$(aws sts assume-role --role-arn arn:aws:iam::843570803560:role/lp3/core/core-raas-run-role --role-session-name $(SESSION_NAME) --output json --no-cli-pager | jq);\
+	export AWS_ACCESS_KEY_ID=$$(echo $$token | jq -r '.Credentials.AccessKeyId');\
+	export AWS_SECRET_ACCESS_KEY=$$(echo $$token | jq -r '.Credentials.SecretAccessKey');\
+	export AWS_SESSION_TOKEN=$$(echo $$token | jq -r '.Credentials.SessionToken');\
+	terraform -chdir=dev workspace select -or-create dev;\
+	terraform -chdir=dev init;\
+	terraform -chdir=dev apply
