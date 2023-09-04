@@ -37,6 +37,7 @@ jobs:
           echo "AWS_ACCESS_KEY_ID=$tmp_key_id" >> "$GITHUB_ENV"
           echo "AWS_SECRET_ACCESS_KEY=$tmp_secret_key" >> "$GITHUB_ENV"
           echo "AWS_SESSION_TOKEN=$tmp_token" >> "$GITHUB_ENV"
+          aws sts get-caller-identity
 
       - name: Terraform format
         id: fmt
