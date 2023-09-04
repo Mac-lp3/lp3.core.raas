@@ -78,7 +78,8 @@ aws iam put-role-policy --role-name $ROLE_NAME --policy-name $POLICY_NAME --poli
                 "iam:TagRole",
                 "iam:ListRolePolicies",
                 "iam:ListAttachedRolePolicies",
-                "iam:PutRolePolicy"
+                "iam:PutRolePolicy",
+                "iam:ListInstanceProfilesForRole"
             ],
             "Resource": [
                 "arn:aws:iam::'$(eval echo $ACCOUNT_ID)':role/lp3/raas/*",
