@@ -12,7 +12,6 @@ env:
 
   tf-merge:
     if: ${{ github.event.pull_request.merged }}
-    needs: [ validate-roles ]
     name: Terraform Merge
     runs-on: ubuntu-latest
     steps:
@@ -22,6 +21,7 @@ env:
           terraform_wrapper: false
 
       - name: Assume role
+        id: sts
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -35,11 +35,13 @@ env:
           echo "AWS_SESSION_TOKEN=$tmp_token" >> "$GITHUB_ENV"
 
       - name: Terraform Init
+        needs: [ sts ]
         id: init
         run: |
           terraform -chdir=prod init
 
       - name: Terraform merge
+        needs: [ init ]
         id: merge
         env:
           SOURCE_BRANCH: ${{ github.head_ref }}
