@@ -36,13 +36,11 @@ jobs:
           echo "AWS_SESSION_TOKEN=$tmp_token" >> "$GITHUB_ENV"
 
       - name: Terraform Init
-        needs: [ sts ]
         id: init
         run: |
           terraform -chdir=prod init
 
       - name: Terraform merge
-        needs: [ init ]
         id: merge
         env:
           SOURCE_BRANCH: ${{ github.head_ref }}
@@ -62,7 +60,6 @@ jobs:
 
       - name: Terraform Plan
         id: plan
-        needs: [ merge ]
         run: |
           terraform -chdir=prod workspace select main
           terraform -chdir=prod plan
