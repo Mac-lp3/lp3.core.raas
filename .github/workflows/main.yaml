@@ -1,5 +1,5 @@
 name: Deploy roles to dev environment
-run-name: ${{ github.actor }} triggered dev role deployment
+run-name: ${{ github.actor }} dev deployment
 
 on:
   push:
@@ -7,7 +7,6 @@ on:
       - main
 
 env:
-  PLAN_FILE_NAME: tfplan.plan
   SESSION_NAME: gh-action-job-${{github.job}}
   AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
 
@@ -60,9 +59,7 @@ jobs:
         id: plan
         run: |
           terraform -chdir=dev workspace select -or-create dev
-          terraform -chdir=dev plan -out=$PLAN_FILE_NAME
-          tree -a --dirsfirst -I 'node_modules|.git|.terraform'
-          echo $GITHUB_WORKSPACE
+          terraform -chdir=dev plan -out=tfplan.plan
 
       - name: Upload plan
         uses: actions/upload-artifact@v3
@@ -70,3 +67,31 @@ jobs:
           name: plan_file
           path: ./dev/tfplan.plan
 
+  tf-apply:
+      name: "Terraform apply"
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v3
+        - uses: hashicorp/setup-terraform@v2
+          with:
+            terraform_wrapper: false
+
+        - name: "Assume role"
+          env:
+            AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+            AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          run: |
+            token=$(aws sts assume-role --role-arn ${{ secrets.RAAS_ROLE_ARN }} --role-session-name $SESSION_NAME --duration-seconds 900 --output json --no-cli-pager | jq)
+            tmp_key_id=$(echo $token | jq -r '.Credentials.AccessKeyId')
+            tmp_secret_key=$(echo $token | jq -r '.Credentials.SecretAccessKey')
+            tmp_token=$(echo $token | jq -r '.Credentials.SessionToken')
+            echo "AWS_ACCESS_KEY_ID=$tmp_key_id" >> "$GITHUB_ENV"
+            echo "AWS_SECRET_ACCESS_KEY=$tmp_secret_key" >> "$GITHUB_ENV"
+            echo "AWS_SESSION_TOKEN=$tmp_token" >> "$GITHUB_ENV"
+
+        - name: Download math result for job 1
+          uses: actions/download-artifact@v3
+          with:
+            name: plan_file
+
+        - run: tree  -a --dirsfirst -I 'node_modules|.git|.terraform'
