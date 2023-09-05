@@ -1,0 +1,19 @@
+projectName: "ecssandbox"
+
+deployer:
+  perms:
+    - Resource: "*"
+      Effect: "Allow"
+      Action:
+        - "s3:List*"
+
+roles:
+  - name: "ecs-runner"
+    principal: 
+      Service:
+        - "ecs.amazonaws.com"
+    perms:
+      - Resource: "arn:aws:ec2:ap-southeast-2:843570803560:*/*"
+        Effect: "Allow"
+        Action:
+          - "ec2:List*"

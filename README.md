@@ -50,5 +50,6 @@ You should be good to go now (assuming that missing permission was your issue).
 
 ## TODO
 
+* init TF workspace on branch create
 * Reusable workflows for GH actions
 * Policies are case sensitive. I could make things easier by updating the yml format and policy template so end users do not need to be aware of the proper field names/formats...

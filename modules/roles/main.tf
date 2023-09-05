@@ -1,13 +1,13 @@
 locals {
     fix = "${var.ENV == "dev" ? "-${var.ENV}" : "" }"
     project_name = yamldecode(file("${var.file_path}"))["projectName"]
-    roles = { for role in yamldecode(file("../projects/bermuda/roles.yml"))["roles"] : role.name => { "statement": merge( { "perms":role.perms }, { "principal": role.principal} ) } }
+    roles = { for role in yamldecode(file("${var.file_path}"))["roles"] : role.name => { "statement": merge( { "perms":role.perms }, { "principal": role.principal} ) } }
 }
 
 resource "aws_iam_role" "project_role" {
     for_each = local.roles
 
-    name = "${each.key}${local.fix}"
+    name = "${each.key}"
     path = "/${var.iam_path}/"
 
     assume_role_policy = jsonencode({
@@ -23,7 +23,7 @@ resource "aws_iam_role" "project_role" {
 resource "aws_iam_role_policy" "project_policy" {
     for_each = local.roles
 
-    name = "${each.key}-policy${local.fix}"
+    name = "${each.key}-policy"
     role = aws_iam_role.project_role[each.key].id
 
     policy = jsonencode({

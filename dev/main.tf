@@ -17,7 +17,6 @@ terraform {
 provider "aws" {
     default_tags {
         tags = {
-            env       = "dev"
             managedBy = "raas"
         }
     }
