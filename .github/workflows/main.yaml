@@ -62,6 +62,7 @@ jobs:
           terraform -chdir=dev workspace select -or-create dev
           terraform -chdir=dev plan -out=$PLAN_FILE_NAME
           tree -a --dirsfirst -I 'node_modules|.git|.terraform'
+          echo $GITHUB_WORKSPACE
 
       - name: Upload plan
         uses: actions/upload-artifact@v3
