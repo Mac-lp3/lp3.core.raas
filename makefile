@@ -11,20 +11,43 @@ initial-setup:
 	@./manual/0_backend.sh $(ENV) $(AWS_REGION)
 	@./manual/1_user.sh $(ENV) $(AWS_REGION)
 
+initial-setup-prod:
+	@echo "By default, this will create the initial AWS resource in:"
+	@echo "Environment: production"
+	@echo "AWS region: ap-southeast-2"
+	@echo "If you want to change this, use: make initial-setup ENV=somethign AWS_REGION=something"
+	@./manual/0_backend.sh prod $(AWS_REGION)
+	@./manual/1_user.sh prod $(AWS_REGION)
+
 tf-i-d:
 	terraform -chdir=dev init
+
+tf-i-prod:
+	terraform -chdir=prod init
 
 tf-p-d:
 	terraform -chdir=dev workspace select -or-create dev
 	terraform -chdir=dev plan
 
+tf-p-prod:
+	terraform -chdir=prod workspace select -or-create prod
+	terraform -chdir=prod plan
+
 tf-a-d:
 	terraform -chdir=dev workspace select -or-create dev
 	terraform -chdir=dev apply
 
+tf-a-prod:
+	terraform -chdir=prod workspace select -or-create prod
+	terraform -chdir=prod apply
+
 tf-destroy-d:
 	terraform -chdir=dev workspace select -or-create dev
 	terraform -chdir=dev destroy
+
+tf-destroy-prod:
+	terraform -chdir=prod workspace select -or-create prod
+	terraform -chdir=prod destroy
 
 sts:
 	token=$$(aws sts assume-role --role-arn $(ROLE_ARN) --role-session-name $(SESSION_NAME) --duration-seconds 900 --output json --no-cli-pager | jq);\
@@ -33,8 +56,6 @@ sts:
 	export AWS_SESSION_TOKEN=$$(echo $$token | jq -r '.Credentials.SessionToken');\
 	aws sts get-caller-identity
 
-# test runner deployment
-# run TF apply
 local-test:
 	token=$$(aws sts assume-role --role-arn $(ROLE_ARN) --role-session-name $(SESSION_NAME) --duration-seconds 900 --output json --no-cli-pager | jq);\
 	export AWS_ACCESS_KEY_ID=$$(echo $$token | jq -r '.Credentials.AccessKeyId');\

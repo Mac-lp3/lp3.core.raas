@@ -50,7 +50,5 @@ You should be good to go now (assuming that missing permission was your issue).
 
 ## TODO
 
-* git deployments
-    * add user key to GH secrets
-    * Copy script from make to GH yaml
+* Reusable workflows for GH actions
 * Policies are case sensitive. I could make things easier by updating the yml format and policy template so end users do not need to be aware of the proper field names/formats...
