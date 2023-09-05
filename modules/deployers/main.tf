@@ -7,12 +7,12 @@ locals {
 data "aws_caller_identity" "current" {}
 
 resource "aws_iam_user" "deployer_user" {
-    name = "${local.project_name}-deployer-user${local.fix}"
+    name = "${local.project_name}-deployer-user"
     path = "/${var.iam_path}/"
 }
 
 resource "aws_iam_role" "deploy_role" {
-    name = "${local.project_name}-deployer-role${local.fix}"
+    name = "${local.project_name}-deployer-role"
     path = "/${var.iam_path}/"
 
     assume_role_policy = jsonencode({
@@ -30,7 +30,7 @@ resource "aws_iam_role" "deploy_role" {
 }
 
 resource "aws_iam_role_policy" "deploy_policy" {
-    name = "${local.project_name}-deployer-role-policy${local.fix}"
+    name = "${local.project_name}-deployer-role-policy"
     role = aws_iam_role.deploy_role.id
 
     policy = jsonencode({
