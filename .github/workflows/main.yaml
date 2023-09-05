@@ -58,3 +58,10 @@ env:
           mv main.tfstate.tmp prod/main.tfstate
           terraform -chdir=prod workspace select main
           terraform -chdir=prod state push main.tfstate
+
+      - name: Terraform Plan
+        id: plan
+        needs: [ merge ]
+        run: |
+          terraform -chdir=prod workspace select main
+          terraform -chdir=prod plan
