@@ -101,5 +101,5 @@ jobs:
         - name: Terraform apply
           id: apply
           run: |
-          terraform -chdir=dev workspace select -or-create dev
-          terraform -chdir=dev apply tfplan.plan
+            terraform -chdir=dev workspace select -or-create dev
+            terraform -chdir=dev apply tfplan.plan
