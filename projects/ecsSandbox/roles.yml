@@ -17,4 +17,4 @@ roles:
         Effect: "Allow"
         Action:
           - "ec2:List*"
-          - "ec2:DescribeInstances"
+          - "ec2:Describe*"
