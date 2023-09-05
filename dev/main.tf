@@ -7,7 +7,7 @@ terraform {
     }
 
     backend "s3" {
-        bucket  = "core-raas-state-dv"
+        bucket  = "core-raas-state"
         key     = "tf-state/terraform.tfstate"
         region  = "ap-southeast-2"
         encrypt = "true"

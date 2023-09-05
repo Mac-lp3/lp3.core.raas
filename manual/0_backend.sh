@@ -25,7 +25,7 @@ if [ $# -ge 2 ]; then
     AWS_REGION="$2"
 fi
 
-BUCKET_NAME="core-raas-state${FIX}"
+BUCKET_NAME="core-raas-state"
 
 # create and tag the bucked
 echo "Creating S3 bucket in ${AWS_REGION} with the name ${BUCKET_NAME}"
