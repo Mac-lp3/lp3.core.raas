@@ -1,4 +1,4 @@
-name: Deploy roles to production environment
+name: Merge deployed TF states
 run-name: ${{ github.actor }} deployment
 on:
   pull_request:
@@ -10,6 +10,7 @@ env:
   SESSION_NAME: gh-action-job-${{github.job}}
   AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
 
+jobs:
   tf-merge:
     if: ${{ github.event.pull_request.merged }}
     name: Terraform Merge

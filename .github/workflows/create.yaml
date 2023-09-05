@@ -1,4 +1,4 @@
-name: Set up ${{ github.ref_name }} terraform workspace
+name: Create branch tf workspace
 run-name: ${{ github.actor }} workspace creation for ${{ github.ref_name }}
 
 on: create
@@ -10,6 +10,7 @@ env:
 jobs:
   create-workspace:
     name: Create workspace for ${{ github.ref_name }}
+    if: ${{ !contains(github.ref, '/main') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3

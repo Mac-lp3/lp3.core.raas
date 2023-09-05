@@ -3,6 +3,8 @@ run-name: ${{ github.actor }} dev deployment
 
 on:
   push:
+    paths:
+      - projects/**
     branches-ignore:
       - main
 
