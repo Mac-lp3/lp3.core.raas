@@ -37,6 +37,7 @@ jobs:
           terraform -chdir=prod init
           terraform -chdir=prod workspace select main
           terraform -chdir=prod state pull > prod/main.tfstate
+          cat prod/main.tfstate
           tmp=$(echo $workspace | tr / -)
           terraform -chdir=prod workspace new $tmp
           terraform -chdir=prod state push main.tfstate
