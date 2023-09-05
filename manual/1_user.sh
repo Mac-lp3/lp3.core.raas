@@ -4,7 +4,7 @@ FIX=""
 AWS_REGION="ap-southeast-2"
 USER_NAME="core-raas-run-identity"
 ROLE_NAME="core-raas-run-role"
-POLICY_NAME="core--raas-run-policy"
+POLICY_NAME="core-raas-run-policy"
 USER_PATH="/lp3/core/"
 TAG_ENV_KEY="env"
 TAG_ENV_VAL="prod"
@@ -43,7 +43,10 @@ aws iam create-role --role-name $ROLE_NAME --no-cli-pager --path $USER_PATH --as
     "Statement": [{
         "Effect": "Allow",
         "Principal": {
-            "AWS": "arn:aws:iam::'$(eval echo $ACCOUNT_ID)':user'$(eval echo $USER_PATH)$(eval echo $USER_NAME)'"
+            "AWS": [
+                "arn:aws:iam::'$(eval echo $ACCOUNT_ID)':user'$(eval echo $USER_PATH)$(eval echo $USER_NAME)'",
+                "arn:aws:iam::'$(eval echo $ACCOUNT_ID)':user/administrator"
+            ]
         },
         "Action":"sts:AssumeRole"
     }]
@@ -52,13 +55,45 @@ aws iam create-role --role-name $ROLE_NAME --no-cli-pager --path $USER_PATH --as
 aws iam tag-role --role-name $ROLE_NAME --tags '{"Key": "'$TAG_ENV_KEY'", "Value": "'$TAG_ENV_VAL'"}'
 aws iam tag-role --role-name $ROLE_NAME --tags '{"Key": "'$TAG_MAN_BY_KEY'", "Value": "'$TAG_MAN_BY_VAL'"}'
 
+# This role needs all of the permissions to create application deployer users and roles.
+# It also needs any additional permissions required by terraform to access / modify the back ends.
 aws iam put-role-policy --role-name $ROLE_NAME --policy-name $POLICY_NAME --policy-document '{
     "Version": "2012-10-17",
-    "Statement": [
-        {
+    "Statement": [{
             "Effect": "Allow",
-            "Action": "s3:ListBucket",
-            "Resource": "arn:aws:s3:::*"
+            "Action": [
+                "iam:ListRoles",
+                "iam:ListUsers",
+                "iam:CreateRole",
+                "iam:CreateUser",
+                "iam:GetRole",
+                "iam:UpdateUser",
+                "iam:DeleteRole",
+                "iam:DeleteUser",
+                "iam:DeleteRolePolicy",
+                "iam:UpdateRole",
+                "iam:GetUser",
+                "iam:GetRolePolicy",
+                "iam:TagUser",
+                "iam:TagRole",
+                "iam:ListRolePolicies",
+                "iam:ListAttachedRolePolicies",
+                "iam:PutRolePolicy",
+                "iam:ListInstanceProfilesForRole"
+            ],
+            "Resource": [
+                "arn:aws:iam::'$(eval echo $ACCOUNT_ID)':role/lp3/raas/*",
+                "arn:aws:iam::'$(eval echo $ACCOUNT_ID)':user/lp3/raas/*"
+            ]
+        }, {
+            "Effect": "Allow",
+            "Action": [
+                "s3:ListBucket",
+                "s3:DeleteObject",
+                "s3:PutObject",
+                "s3:GetObject"
+            ],
+            "Resource": "arn:aws:s3:::core-raas-state*"
         }
     ]
 }'

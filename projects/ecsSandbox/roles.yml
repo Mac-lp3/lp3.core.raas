@@ -1,4 +1,4 @@
-projectName: "bermuda"
+projectName: "ecssandbox"
 
 deployer:
   perms:
@@ -8,7 +8,7 @@ deployer:
         - "s3:List*"
 
 roles:
-  - name: "bermuda-runner"
+  - name: "ecs-runner"
     principal: 
       Service:
         - "ecs.amazonaws.com"

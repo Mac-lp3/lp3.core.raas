@@ -1,0 +1,67 @@
+name: Deploy roles to production environment
+run-name: ${{ github.actor }} deployment
+on:
+  pull_request:
+    types: [ closed ]
+    branches:
+      - main
+
+env:
+  SESSION_NAME: gh-action-job-${{github.job}}
+  AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
+
+  tf-merge:
+    if: ${{ github.event.pull_request.merged }}
+    name: Terraform Merge
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_wrapper: false
+
+      - name: Assume role
+        id: sts
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          token=$(aws sts assume-role --role-arn ${{ secrets.RAAS_ROLE_ARN }} --role-session-name $SESSION_NAME --duration-seconds 900 --output json --no-cli-pager | jq)
+          tmp_key_id=$(echo $token | jq -r '.Credentials.AccessKeyId')
+          tmp_secret_key=$(echo $token | jq -r '.Credentials.SecretAccessKey')
+          tmp_token=$(echo $token | jq -r '.Credentials.SessionToken')
+          echo "AWS_ACCESS_KEY_ID=$tmp_key_id" >> "$GITHUB_ENV"
+          echo "AWS_SECRET_ACCESS_KEY=$tmp_secret_key" >> "$GITHUB_ENV"
+          echo "AWS_SESSION_TOKEN=$tmp_token" >> "$GITHUB_ENV"
+
+      - name: Terraform Init
+        needs: [ sts ]
+        id: init
+        run: |
+          terraform -chdir=prod init
+
+      - name: Terraform merge
+        needs: [ init ]
+        id: merge
+        env:
+          SOURCE_BRANCH: ${{ github.head_ref }}
+        run: |
+          terraform -chdir=prod workspace select main
+          terraform -chdir=prod state pull > main.tfstate
+          terraform state list -state=main.tfstate > main-resources.txt
+          branchName=$(echo $workspace | tr / -)
+          terraform -chdir=prod workspace select $branchName
+          terraform -chdir=prod state pull > branch.tfstate
+          terraform state list -state=branch.tfstate > branch-resources.txt
+          diff main-resources.txt branch-resources.txt | grep '^>' | cut -c 3- | sed 's/"/\\"/g' | xargs -I %s terraform state mv -state=branch.tfstate -state-out=main.tfstate %s %s
+          jq '.serial += 1' main.tfstate > main.tfstate.tmp
+          mv main.tfstate.tmp prod/main.tfstate
+          terraform -chdir=prod workspace select main
+          terraform -chdir=prod state push main.tfstate
+
+      - name: Terraform Plan
+        id: plan
+        needs: [ merge ]
+        run: |
+          terraform -chdir=prod workspace select main
+          terraform -chdir=prod plan
