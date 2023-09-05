@@ -82,30 +82,3 @@ jobs:
           mv tfplan.plan prod/tfplan.plan
           terraform -chdir=prod workspace select main
           terraform -chdir=prod apply tfplan.plan
-
-  tf-destroy:
-    if: ${{ !github.event.pull_request.merged }}
-    name: TF Destroy
-    runs-on: ubuntu-latest
-    environment: manual
-    steps:
-      - uses: actions/checkout@v3
-      - uses: hashicorp/setup-terraform@v2
-
-      - name: Assume role
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        run: |
-          token=$(aws sts assume-role --role-arn ${{ secrets.RAAS_ROLE_ARN }} --role-session-name $SESSION_NAME --duration-seconds 900 --output json --no-cli-pager | jq)
-          tmp_key_id=$(echo $token | jq -r '.Credentials.AccessKeyId')
-          tmp_secret_key=$(echo $token | jq -r '.Credentials.SecretAccessKey')
-          tmp_token=$(echo $token | jq -r '.Credentials.SessionToken')
-          echo "AWS_ACCESS_KEY_ID=$tmp_key_id" >> "$GITHUB_ENV"
-          echo "AWS_SECRET_ACCESS_KEY=$tmp_secret_key" >> "$GITHUB_ENV"
-          echo "AWS_SESSION_TOKEN=$tmp_token" >> "$GITHUB_ENV"
-
-      - name: Terraform destory
-        run: |
-          terraform -chdir=prod workspace select main
-          terraform -chdir=prod destroy
