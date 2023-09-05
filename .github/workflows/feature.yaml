@@ -1,5 +1,5 @@
-name: Deploy roles to dev environment
-run-name: ${{ github.actor }} dev deployment
+name: Deploy project roles
+run-name: ${{ github.actor }} role deployment
 
 on:
   push:
@@ -105,7 +105,7 @@ jobs:
           env:
             workspace: ${{ github.ref_name }}
           run: |
-            mv tfplan.plan dev/tfplan.plan
+            mv tfplan.plan prod/tfplan.plan
             tmp=$(echo $workspace | tr / -)
             terraform -chdir=prod workspace select $tmp
             terraform -chdir=prod apply tfplan.plan

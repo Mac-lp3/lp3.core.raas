@@ -16,5 +16,5 @@ roles:
       - Resource: "arn:aws:ec2:ap-southeast-2:843570803560:*/*"
         Effect: "Allow"
         Action:
-          - "ec2:List*"
+          - "ec2:ListInstances"
           - "ec2:DescribeInstances"
