@@ -1,8 +1,8 @@
 name: Merge deployed TF states
 run-name: ${{ github.actor }} deployment
+
 on:
-  pull_request:
-    types: [ closed ]
+  push:
     branches:
       - main
 
@@ -11,18 +11,15 @@ env:
   AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
 
 jobs:
-  tf-merge:
-    if: ${{ github.event.pull_request.merged }}
-    name: Terraform Merge
+  tf-plan:
+    if: ${{ !github.event.pull_request.merged }}
+    name: TF Plan & Apply
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_wrapper: false
 
       - name: Assume role
-        id: sts
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -36,30 +33,52 @@ jobs:
           echo "AWS_SESSION_TOKEN=$tmp_token" >> "$GITHUB_ENV"
 
       - name: Terraform Init
-        id: init
-        run: |
-          terraform -chdir=prod init
-
-      - name: Terraform merge
-        id: merge
-        env:
-          SOURCE_BRANCH: ${{ github.head_ref }}
-        run: |
-          terraform -chdir=prod workspace select main
-          terraform -chdir=prod state pull > main.tfstate
-          terraform state list -state=main.tfstate > main-resources.txt
-          branchName=$(echo $workspace | tr / -)
-          terraform -chdir=prod workspace select $branchName
-          terraform -chdir=prod state pull > branch.tfstate
-          terraform state list -state=branch.tfstate > branch-resources.txt
-          diff main-resources.txt branch-resources.txt | grep '^>' | cut -c 3- | sed 's/"/\\"/g' | xargs -I %s terraform state mv -state=branch.tfstate -state-out=main.tfstate %s %s
-          jq '.serial += 1' main.tfstate > main.tfstate.tmp
-          mv main.tfstate.tmp prod/main.tfstate
-          terraform -chdir=prod workspace select main
-          terraform -chdir=prod state push main.tfstate
+        run: terraform -chdir=prod init
 
       - name: Terraform Plan
-        id: plan
         run: |
+          terraform -chdir=prod workspace select -or-create main
+          terraform -chdir=prod plan -out=tfplan.plan
+
+      - name: Upload Plan
+        uses: actions/upload-artifact@v3
+        with:
+          name: plan_file
+          path: ./prod/tfplan.plan
+
+  tf-apply:
+    if: ${{ !github.event.pull_request.merged }}
+    name: Terraform Apply
+    runs-on: ubuntu-latest
+    needs: [ tf-plan ]
+    environment: manual
+    steps:
+      - uses: actions/checkout@v3
+      - uses: hashicorp/setup-terraform@v2
+
+      - name: Assume role
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          token=$(aws sts assume-role --role-arn ${{ secrets.RAAS_ROLE_ARN }} --role-session-name $SESSION_NAME --duration-seconds 900 --output json --no-cli-pager | jq)
+          tmp_key_id=$(echo $token | jq -r '.Credentials.AccessKeyId')
+          tmp_secret_key=$(echo $token | jq -r '.Credentials.SecretAccessKey')
+          tmp_token=$(echo $token | jq -r '.Credentials.SessionToken')
+          echo "AWS_ACCESS_KEY_ID=$tmp_key_id" >> "$GITHUB_ENV"
+          echo "AWS_SECRET_ACCESS_KEY=$tmp_secret_key" >> "$GITHUB_ENV"
+          echo "AWS_SESSION_TOKEN=$tmp_token" >> "$GITHUB_ENV"
+
+      - name: Download math result for job 1
+        uses: actions/download-artifact@v3
+        with:
+          name: plan_file
+
+      - name: Terraform Init
+        run: terraform -chdir=prod init
+
+      - name: Terraform Apply
+        run: |
+          mv tfplan.plan prod/tfplan.plan
           terraform -chdir=prod workspace select main
-          terraform -chdir=prod plan
+          terraform -chdir=prod apply tfplan.plan

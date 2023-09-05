@@ -8,7 +8,7 @@ For each yaml file in the `projects/` folder, it:
     * Creates a user and role specifically for CICD actions.
     * Creats additional roles defined in the yaml.
 
-### How it works
+## How it works
 
 All AWS resources created by this project use a user named `core-raas-run-identity`.
 
@@ -16,7 +16,13 @@ It simply uses a terraform template to loop over each yaml file in the projects 
 
 In addition, each project will have one "deployer" user created as well. This user should be used for the CI/CD process. All depoloyers follow a specific naming convention (see below).
 
-### Initial set up
+## Development
+
+**Contributing**
+
+If you want to make changes to how the roles are deployed by the system (so changes to the scripts or the `.tf` files), then do not create featre branches - commit directly to the `main` branch. Pull requesst are treated as new role creation requests, and thus follow a different ci/cd workflow.
+
+**Initial set up**
 
 Just run `make initial-setup`. You can provide a specific AWS region if you'd like.
 
@@ -52,4 +58,5 @@ You should be good to go now (assuming that missing permission was your issue).
 
 * init TF workspace on branch create
 * Reusable workflows for GH actions
+* infra ci/cd triggered by tags or comments rather than direct commits?
 * Policies are case sensitive. I could make things easier by updating the yml format and policy template so end users do not need to be aware of the proper field names/formats...
