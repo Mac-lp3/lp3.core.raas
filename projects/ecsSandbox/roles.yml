@@ -5,7 +5,7 @@ deployer:
     - Resource: "*"
       Effect: "Allow"
       Action:
-        - "s3:List*"
+        - "s3:ListBucket"
 
 roles:
   - name: "ecs-runner"
