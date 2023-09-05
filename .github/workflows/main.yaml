@@ -40,12 +40,6 @@ jobs:
           echo "AWS_SECRET_ACCESS_KEY=$tmp_secret_key" >> "$GITHUB_ENV"
           echo "AWS_SESSION_TOKEN=$tmp_token" >> "$GITHUB_ENV"
 
-      - name: Terraform format
-        id: fmt
-        continue-on-error: true
-        run: |
-          terraform -chdir=dev fmt -check
-
       - name: Terraform Init
         id: init
         run: |
@@ -97,6 +91,11 @@ jobs:
           uses: actions/download-artifact@v3
           with:
             name: plan_file
+
+        - name: Terraform Init
+          id: init
+          run: |
+            terraform -chdir=dev init
 
         - name: Terraform apply
           id: apply
