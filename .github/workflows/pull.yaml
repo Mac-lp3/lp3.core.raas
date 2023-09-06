@@ -10,7 +10,6 @@ on:
 env:
   SESSION_NAME: gh-action-job-${{github.job}}
   AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
-  TF_LOG: DEBUG
 
 jobs:
   pull-request:
@@ -48,11 +47,10 @@ jobs:
         env:
           SOURCE_BRANCH: ${{ github.head_ref }}
         run: |
-          terraform -chdir=prod workspace list
           terraform -chdir=prod workspace select main
           terraform -chdir=prod state pull > main.tfstate
           terraform state list -state=main.tfstate > main-resources.txt
-          branchName=$(echo $workspace | tr / -)
+          branchName=$(echo $SOURCE_BRANCH | tr / -)
           terraform -chdir=prod workspace select $branchName
           terraform -chdir=prod state pull > branch.tfstate
           terraform state list -state=branch.tfstate > branch-resources.txt
